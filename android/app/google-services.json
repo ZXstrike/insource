@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "477375931499",
+    "project_id": "insource-c4f76",
+    "storage_bucket": "insource-c4f76.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477375931499:android:713f3d539a8c4e82107d2e",
+        "android_client_info": {
+          "package_name": "com.example.insource"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "477375931499-hht12ttdht8c31jtae3l44dv7l7anqlo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqoeCF9Iok2VlVy0ONZkZml1gn1NfCyz0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "477375931499-hht12ttdht8c31jtae3l44dv7l7anqlo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "477375931499-ohj3i91n40lgtt9a0tlb9e3ba14oojsp.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.insource"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
