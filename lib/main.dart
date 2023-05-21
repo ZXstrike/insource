@@ -30,9 +30,7 @@ void main() async {
 List shuffle(List items) {
   var random = Random();
 
-  // Go through all elements.
   for (var i = items.length - 1; i > 0; i--) {
-    // Pick a pseudorandom number according to the list length
     var n = random.nextInt(i + 1);
 
     var temp = items[i];
@@ -178,12 +176,92 @@ class _PostDetailState extends State<PostDetail> {
                 children: [
                   Image(image: AssetImage(widget.item)),
                   Container(
-                    padding: const EdgeInsets.only(top: 15, bottom: 15),
+                    padding: const EdgeInsets.only(
+                        top: 15, bottom: 5, right: 15, left: 15),
                     child: Row(
                       children: [
-                        Text(
-                          widget.item,
-                          style: const TextStyle(color: Colors.white),
+                        Container(
+                          padding: const EdgeInsets.only(right: 15),
+                          child: CircleAvatar(
+                            radius: 25,
+                            foregroundImage: AssetImage(widget.item),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            widget.item,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 25),
+                    child: Text(
+                      widget.item,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 25),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 40,
+                          width: 90,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: ButtonStyle(
+                              foregroundColor:
+                                  MaterialStateProperty.resolveWith(
+                                      (states) => Colors.white),
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                              ),
+                              backgroundColor:
+                                  MaterialStateProperty.all<Color>(Colors.grey),
+                            ),
+                            child: const Text(
+                              'Save',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          width: 90,
+                          child: TextButton(
+                              onPressed: () {},
+                              style: ButtonStyle(
+                                foregroundColor:
+                                    MaterialStateProperty.resolveWith(
+                                        (states) => Colors.white),
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                ),
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        Colors.redAccent),
+                              ),
+                              child: const Icon(Icons.favorite_outline)),
                         ),
                       ],
                     ),
@@ -206,7 +284,9 @@ class _PostDetailState extends State<PostDetail> {
         padding: const EdgeInsets.only(top: 35),
         child: Stack(
           children: [
-            _postContent(),
+            SingleChildScrollView(
+              child: _postContent(),
+            ),
             Positioned(
                 top: 10, left: 10, child: UIKits().customBackButton(context)),
           ],
