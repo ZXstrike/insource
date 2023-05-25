@@ -1,9 +1,10 @@
-import 'dart:math';
+//import 'cust_fun.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_masonry_view/flutter_masonry_view.dart';
+//import 'package:flutter_masonry_view/flutter_masonry_view.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,20 +26,6 @@ void main() async {
           return null;
         }),
   );
-}
-
-List shuffle(List items) {
-  var random = Random();
-
-  for (var i = items.length - 1; i > 0; i--) {
-    var n = random.nextInt(i + 1);
-
-    var temp = items[i];
-    items[i] = items[n];
-    items[n] = temp;
-  }
-
-  return items;
 }
 
 class UIKits {
@@ -89,57 +76,58 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _imageItems = [
-    'lib/assets/images/1.jpg',
-    'lib/assets/images/2.jpg',
-    'lib/assets/images/3.jpg',
-    'lib/assets/images/4.jpg',
-    'lib/assets/images/5.jpg',
-    'lib/assets/images/6.png',
-    'lib/assets/images/7.jpg',
-    'lib/assets/images/8.jpg',
-    'lib/assets/images/9.jpg',
-    'lib/assets/images/10.jpg',
-    'lib/assets/images/11.jpg',
-    'lib/assets/images/12.jpg',
-    'lib/assets/images/13.jpg',
-    'lib/assets/images/14.jpeg',
-    'lib/assets/images/15.jpg',
-    'lib/assets/images/16.jpg',
-  ];
+  var indexCount = 16;
+  late ScrollController _controller;
 
-  Widget _masonExploreImages(imagesList) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 30),
-      child: MasonryView(
-        listOfItem: shuffle(imagesList),
-        itemRadius: 0,
-        itemPadding: 4.5,
-        numberOfColumn: 2,
-        itemBuilder: (item) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/PostDetail', arguments: item);
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: Image(image: AssetImage(item)),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    item.toString(),
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                )
-              ],
-            ),
-          );
+  _scrollListener() {
+    if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange) {
+      setState(
+        () {},
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    _controller = ScrollController();
+    _controller.addListener(_scrollListener);
+    super.initState();
+  }
+
+  Widget _masonryGridView() {
+    return MasonryGridView.builder(
+      controller: _controller,
+      padding: const EdgeInsets.only(top: 30, right: 4, left: 4, bottom: 6),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: indexCount,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 8,
+      gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2),
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () {
+          Navigator.pushNamed(context, '/PostDetail',
+              arguments: 'lib/assets/images/${index + 1}.jpg');
         },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: Image(
+                  image: AssetImage('lib/assets/images/${index + 1}.jpg')),
+            ),
+            Container(
+              padding: const EdgeInsets.all(6),
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'lib/assets/images/${index + 1}.jpg',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -148,7 +136,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
-      body: _masonExploreImages(_imageItems),
+      body: _masonryGridView(),
       bottomNavigationBar: UIKits().bottomNavBar(),
     );
   }
@@ -292,6 +280,37 @@ class _PostDetailState extends State<PostDetail> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class AccountPage extends StatefulWidget {
+  const AccountPage({super.key});
+
+  @override
+  State<AccountPage> createState() => _AccountPageState();
+}
+
+class _AccountPageState extends State<AccountPage> {
+  Widget _acacount_detail() {
+    return Column(
+      children: [
+        GestureDetector(
+          child: Container(
+            padding: null,
+            child: const CircleAvatar(image)
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 10, 10, 10),
+      body: null,
+      bottomNavigationBar: UIKits().bottomNavBar(),
     );
   }
 }
