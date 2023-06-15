@@ -1,8 +1,13 @@
 //import 'cust_fun.dart';
+
+// ignore_for_file: unused_local_variable
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
+import 'dart:async';
 //import 'package:flutter_masonry_view/flutter_masonry_view.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
@@ -11,17 +16,26 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   runApp(
     MaterialApp(
         title: "Insource prototype",
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case '/':
+              return MaterialPageRoute(
+                  builder: (context) => const SplashPage());
+            case '/login':
+              return MaterialPageRoute(builder: (context) => const LoginPage());
+            case '/home':
               return MaterialPageRoute(builder: (context) => const HomePage());
             case '/PostDetail':
               return MaterialPageRoute(
                   builder: (context) =>
                       PostDetail(item: settings.arguments.toString()));
+            case '/accountPage':
+              return MaterialPageRoute(
+                  builder: (context) => const AccountPage());
           }
           return null;
         }),
@@ -50,23 +64,41 @@ class UIKits {
     );
   }
 
-  Widget bottomNavBar() {
+  Widget bottomNavBar(context, int selectedIndex) {
     return BottomNavigationBar(
+      currentIndex: selectedIndex,
       backgroundColor: const Color.fromARGB(255, 0, 0, 0),
       selectedItemColor: Colors.blue,
       unselectedItemColor: Colors.white,
       items: const <BottomNavigationBarItem>[
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
         BottomNavigationBarItem(
-            icon: Icon(Icons.add_outlined), label: 'Upload'),
+          icon: Icon(Icons.home_outlined),
+          label: 'Home',
+        ),
         BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined), label: 'Account'),
+          icon: Icon(Icons.add_outlined),
+          label: 'Upload',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outlined),
+          label: 'Account',
+        ),
       ],
+      onTap: (int index) {
+        switch (index) {
+          case 0:
+            Navigator.pushNamed(context, "/home");
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/accountPage');
+            break;
+        }
+      },
     );
   }
 }
 
-class FireabseDataLoader {}
+class FireabseDataManager {}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -77,27 +109,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   var indexCount = 16;
-  late ScrollController _controller;
-
-  _scrollListener() {
-    if (_controller.offset >= _controller.position.maxScrollExtent &&
-        !_controller.position.outOfRange) {
-      setState(
-        () {},
-      );
-    }
-  }
-
-  @override
-  void initState() {
-    _controller = ScrollController();
-    _controller.addListener(_scrollListener);
-    super.initState();
-  }
 
   Widget _masonryGridView() {
     return MasonryGridView.builder(
-      controller: _controller,
       padding: const EdgeInsets.only(top: 30, right: 4, left: 4, bottom: 6),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: indexCount,
@@ -137,7 +151,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: _masonryGridView(),
-      bottomNavigationBar: UIKits().bottomNavBar(),
+      bottomNavigationBar: UIKits().bottomNavBar(context, 0),
     );
   }
 }
@@ -292,14 +306,14 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
-  Widget _acacount_detail() {
+  Widget _topAccountDetail() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         GestureDetector(
           child: Container(
-            padding: null,
-            child: const CircleAvatar(image)
-          ),
+              padding: null, child: const CircleAvatar(foregroundImage: null)),
         ),
       ],
     );
@@ -309,8 +323,188 @@ class _AccountPageState extends State<AccountPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
-      body: null,
-      bottomNavigationBar: UIKits().bottomNavBar(),
+      body: Column(
+        children: [
+          _topAccountDetail(),
+        ],
+      ),
+      bottomNavigationBar: UIKits().bottomNavBar(context, 2),
+    );
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Widget _userInput() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'User Name',
+              hintText: 'Enter valid mail id as abc@gmail.com',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'Password',
+              hintText: 'Enter your secure password',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: TextButton(
+            onPressed: () async {
+              try {
+                final credntial =
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                  email: emailController.text,
+                  password: passwordController.text,
+                );
+              } on FirebaseAuthException catch (e) {
+                if (e.code == 'user-not-found') {
+                  debugPrint('No user found for that email address.');
+                } else if (e.code == 'wrong-password') {
+                  debugPrint('Wrong password for that email user.');
+                }
+              }
+
+              FirebaseAuth.instance.authStateChanges().listen(
+                (User? user) {
+                  if (user == null) {
+                    debugPrint('User currently signed out!');
+                  } else {
+                    debugPrint('User is signed in!');
+
+                    Navigator.pushReplacement(
+                      context,
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      ) as Route<Object?>,
+                    );
+                  }
+                },
+              );
+            },
+            child: const Text("Login"),
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    // Clean uo the controller when the widget is disposed
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 10, 10, 10),
+      body: _userInput(),
+    );
+  }
+}
+
+class RegistrationPage extends StatefulWidget {
+  const RegistrationPage({super.key});
+
+  @override
+  State<RegistrationPage> createState() => _RegistrationPageState();
+}
+
+class _RegistrationPageState extends State<RegistrationPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAuth.instance.authStateChanges().listen(
+      (User? user) {
+        Timer(
+          const Duration(seconds: 3),
+          () {
+            if (user == null) {
+              debugPrint('User is currently signed out!');
+              Navigator.pushReplacement(
+                  context,
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(),
+                    ),
+                  ) as Route<Object?>);
+            } else {
+              debugPrint('User is signed in!');
+              Navigator.pushReplacement(
+                  context,
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomePage(),
+                    ),
+                  ) as Route<Object?>);
+            }
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.person,
+        color: Colors.white,
+      ),
     );
   }
 }
