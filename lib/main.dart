@@ -307,15 +307,54 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   Widget _topAccountDetail() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        GestureDetector(
-          child: Container(
-              padding: null, child: const CircleAvatar(foregroundImage: null)),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(top: 50),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: null,
+            child: const CircleAvatar(
+              backgroundColor: Colors.white,
+              backgroundImage: null,
+              radius: 65,
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Text(
+              'username',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800),
+            ),
+          ),
+          const Padding(padding: EdgeInsets.symmetric())
+        ],
+      ),
+    );
+  }
+
+  Widget _logoutButton() {
+    return TextButton(
+      onPressed: () {
+        FirebaseAuth.instance.signOut();
+        Navigator.pushReplacement(
+          context,
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SplashPage()),
+          ) as Route<Object?>,
+        );
+      },
+      child: const Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Logout'),
+            Icon(Icons.logout_outlined),
+          ]),
     );
   }
 
@@ -324,9 +363,8 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: Column(
-        children: [
-          _topAccountDetail(),
-        ],
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [_topAccountDetail(), _logoutButton()],
       ),
       bottomNavigationBar: UIKits().bottomNavBar(context, 2),
     );
@@ -350,6 +388,17 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.max,
       children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 30),
+          child: Text(
+            'Login',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
           child: TextField(
@@ -392,8 +441,12 @@ class _LoginPageState extends State<LoginPage> {
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'user-not-found') {
                   debugPrint('No user found for that email address.');
+                  debugPrint(e.code);
                 } else if (e.code == 'wrong-password') {
                   debugPrint('Wrong password for that email user.');
+                  debugPrint(e.code);
+                } else {
+                  debugPrint(e.code);
                 }
               }
 
@@ -418,7 +471,33 @@ class _LoginPageState extends State<LoginPage> {
             },
             child: const Text("Login"),
           ),
-        )
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Dont have an account?',
+                style: TextStyle(color: Colors.white),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pushReplacement(
+                      context,
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegistrationPage(),
+                        ),
+                      ) as Route<Object?>);
+                },
+                child: const Text('Signup'),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -434,6 +513,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: _userInput(),
     );
@@ -448,9 +528,144 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  Widget _userInput() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 30),
+          child: Text(
+            'Register',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'User Name',
+              hintText: 'Enter valid mail id as abc@gmail.com',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'Password',
+              hintText: 'Enter your secure password',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15),
+          child: TextButton(
+            onPressed: () async {
+              try {
+                final credential =
+                    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                  email: emailController.text,
+                  password: passwordController.text,
+                );
+              } on FirebaseAuthException catch (e) {
+                if (e.code == 'weak-password') {
+                  debugPrint('The password provided is too weak.');
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('The password provided is too weak.'),
+                  ));
+                } else if (e.code == 'email-already-in-use') {
+                  debugPrint('The account already exists for that email.');
+                }
+              } catch (e) {
+                debugPrint(e.toString());
+              }
+
+              FirebaseAuth.instance.authStateChanges().listen(
+                (User? user) {
+                  if (user == null) {
+                    debugPrint('User currently signed out!');
+                  } else {
+                    debugPrint('User is signed in!');
+
+                    Navigator.pushReplacement(
+                      context,
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      ) as Route<Object?>,
+                    );
+                  }
+                },
+              );
+            },
+            child: const Text("Signup"),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Dont have an account?',
+                style: TextStyle(color: Colors.white),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pushReplacement(
+                      context,
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginPage(),
+                        ),
+                      ) as Route<Object?>);
+                },
+                child: const Text('Login'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: const Color.fromARGB(255, 10, 10, 10),
+      body: _userInput(),
+    );
   }
 }
 
