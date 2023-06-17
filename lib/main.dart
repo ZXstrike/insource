@@ -8,7 +8,7 @@ import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
 import 'dart:async';
-//import 'package:flutter_masonry_view/flutter_masonry_view.dart';
+import 'package:flutter_masonry_view/flutter_masonry_view.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 void main() async {
@@ -19,27 +19,48 @@ void main() async {
 
   runApp(
     MaterialApp(
-        title: "Insource prototype",
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case '/':
-              return MaterialPageRoute(
-                  builder: (context) => const SplashPage());
-            case '/login':
-              return MaterialPageRoute(builder: (context) => const LoginPage());
-            case '/home':
-              return MaterialPageRoute(builder: (context) => const HomePage());
-            case '/PostDetail':
-              return MaterialPageRoute(
-                  builder: (context) =>
-                      PostDetail(item: settings.arguments.toString()));
-            case '/accountPage':
-              return MaterialPageRoute(
-                  builder: (context) => const AccountPage());
-          }
-          return null;
-        }),
+      title: "Insource prototype",
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (context) => const SplashPage());
+          case '/login':
+            return MaterialPageRoute(builder: (context) => const LoginPage());
+          case '/home':
+            return MaterialPageRoute(builder: (context) => const HomePage());
+          case '/PostDetail':
+            return MaterialPageRoute(
+                builder: (context) =>
+                    PostDetail(item: settings.arguments.toString()));
+          case '/accountPage':
+            return MaterialPageRoute(builder: (context) => const AccountPage());
+        }
+        return null;
+      },
+    ),
   );
+}
+
+class ListContentData {
+  final String contentCreator;
+  final String contentTitle;
+  final String contentUrl;
+  final String contentImageUrl;
+
+  ListContentData(this.contentCreator, this.contentTitle, this.contentUrl,
+      this.contentImageUrl);
+}
+
+class ContentData {
+  final String contentCreator;
+  final String contentTitle;
+  final String contentUrl;
+  final String contentImageUrl;
+  final int contentLike;
+  final bool contentLikeState;
+
+  ContentData(this.contentCreator, this.contentTitle, this.contentUrl,
+      this.contentImageUrl, this.contentLike, this.contentLikeState);
 }
 
 class UIKits {
@@ -54,11 +75,12 @@ class UIKits {
           color: const Color.fromARGB(153, 0, 0, 0),
           padding: const EdgeInsets.all(8),
           child: const Center(
-              child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 25,
-          )),
+            child: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: Colors.white,
+              size: 25,
+            ),
+          ),
         ),
       ),
     );
@@ -87,10 +109,54 @@ class UIKits {
       onTap: (int index) {
         switch (index) {
           case 0:
-            Navigator.pushNamed(context, "/home");
+            if (index == 0) {
+              Navigator.popAndPushNamed(context, "/home");
+            } else {
+              Navigator.pushNamed(context, "/home");
+            }
+            break;
+          case 1:
+            showModalBottomSheet(
+              context: context,
+              shape: const ContinuousRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(15),
+                ),
+              ),
+              builder: (BuildContext context) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        iconSize: 60,
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 50,
+                        ),
+                      ),
+                      IconButton(
+                        iconSize: 60,
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.image_outlined,
+                          size: 50,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
             break;
           case 2:
-            Navigator.pushNamed(context, '/accountPage');
+            if (index == 2) {
+              Navigator.popAndPushNamed(context, "/accountPage");
+            } else {
+              Navigator.pushNamed(context, '/accountPage');
+            }
             break;
         }
       },
@@ -98,7 +164,19 @@ class UIKits {
   }
 }
 
-class FireabseDataManager {}
+class FireabseDataManager {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  getCurrentUserID() {
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
+    return uid;
+  }
+
+  getUserCreationContent() {
+    final userID = getCurrentUserID();
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -308,7 +386,7 @@ class AccountPage extends StatefulWidget {
 class _AccountPageState extends State<AccountPage> {
   Widget _topAccountDetail() {
     return Padding(
-      padding: const EdgeInsets.only(top: 50),
+      padding: const EdgeInsets.only(top: 15),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -322,7 +400,7 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
+            padding: EdgeInsets.symmetric(vertical: 15),
             child: Text(
               'username',
               style: TextStyle(
@@ -331,9 +409,70 @@ class _AccountPageState extends State<AccountPage> {
                   fontWeight: FontWeight.w800),
             ),
           ),
-          const Padding(padding: EdgeInsets.symmetric())
+          const Padding(
+            padding: EdgeInsets.symmetric(),
+            child: Text(
+              '@username',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _masonryView() {
+    final listOfItemContent = [];
+
+    return MasonryView(
+      listOfItem: listOfItemContent,
+      itemPadding: 0,
+      itemRadius: 0,
+      numberOfColumn: 2,
+      itemBuilder: (context) => GestureDetector(
+        onTap: () {},
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: null, //add image
+            ),
+            Container(
+              padding: const EdgeInsets.all(6),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                '',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _contentList() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TextButton(
+              onPressed: () {},
+              child: const Text('Created'),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text('Saved'),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: _masonryView(),
+        ),
+      ],
     );
   }
 
@@ -345,16 +484,54 @@ class _AccountPageState extends State<AccountPage> {
           context,
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const SplashPage()),
+            MaterialPageRoute(
+              builder: (context) => const SplashPage(),
+            ),
           ) as Route<Object?>,
         );
       },
       child: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Logout'),
-            Icon(Icons.logout_outlined),
-          ]),
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Logout'),
+          Icon(Icons.logout_outlined),
+        ],
+      ),
+    );
+  }
+
+  Widget _simpleMenuButton() {
+    return Container(
+      padding: const EdgeInsets.only(top: 45),
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const ContinuousRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
+            ),
+            builder: (BuildContext context) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _logoutButton(),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+        icon: const Icon(
+          Icons.menu_rounded,
+          size: 28,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
@@ -363,8 +540,12 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [_topAccountDetail(), _logoutButton()],
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          _simpleMenuButton(),
+          _topAccountDetail(),
+          _contentList(),
+        ],
       ),
       bottomNavigationBar: UIKits().bottomNavBar(context, 2),
     );
@@ -683,7 +864,10 @@ class _SplashPageState extends State<SplashPage> {
     FirebaseAuth.instance.authStateChanges().listen(
       (User? user) {
         Timer(
-          const Duration(seconds: 3),
+          const Duration(
+            seconds: 1,
+            milliseconds: 50,
+          ),
           () {
             if (user == null) {
               debugPrint('User is currently signed out!');
