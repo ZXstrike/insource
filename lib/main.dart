@@ -1,9 +1,16 @@
 //import 'cust_fun.dart';
 
-// ignore_for_file: unused_local_variable
+// ignore_for_file: unused_local_variable, use_build_context_synchronously
 
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+//import 'package:permission_handler/permission_handler.dart';
 import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
@@ -28,10 +35,18 @@ void main() async {
             return MaterialPageRoute(builder: (context) => const LoginPage());
           case '/home':
             return MaterialPageRoute(builder: (context) => const HomePage());
+          case '/upload':
+            return MaterialPageRoute(
+              builder: (context) => UploadContentPage(
+                imagePath: settings.arguments.toString(),
+              ),
+            );
           case '/PostDetail':
             return MaterialPageRoute(
-                builder: (context) =>
-                    PostDetail(item: settings.arguments.toString()));
+              builder: (context) => PostDetail(
+                item: settings.arguments.toString(),
+              ),
+            );
           case '/accountPage':
             return MaterialPageRoute(builder: (context) => const AccountPage());
         }
@@ -118,6 +133,7 @@ class UIKits {
           case 1:
             showModalBottomSheet(
               context: context,
+              barrierColor: Colors.black87,
               shape: const ContinuousRectangleBorder(
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(15),
@@ -131,7 +147,22 @@ class UIKits {
                     children: [
                       IconButton(
                         iconSize: 60,
-                        onPressed: () {},
+                        onPressed: () async {
+                          getImage() async {
+                            ImagePicker imagePicker = ImagePicker();
+                            XFile? file = await imagePicker.pickImage(
+                                source: ImageSource.camera);
+                            debugPrint('${file?.path}');
+                            return file?.path.toString();
+                          }
+
+                          String? imagePath = await getImage();
+                          if (imagePath != null) {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(context, '/upload',
+                                arguments: imagePath);
+                          }
+                        },
                         icon: const Icon(
                           Icons.camera_alt_outlined,
                           size: 50,
@@ -139,7 +170,22 @@ class UIKits {
                       ),
                       IconButton(
                         iconSize: 60,
-                        onPressed: () {},
+                        onPressed: () async {
+                          getImage() async {
+                            ImagePicker imagePicker = ImagePicker();
+                            XFile? file = await imagePicker.pickImage(
+                                source: ImageSource.gallery);
+                            debugPrint('${file?.path}');
+                            return file?.path.toString();
+                          }
+
+                          String? imagePath = await getImage();
+                          if (imagePath != null) {
+                            Navigator.pop(context);
+                            Navigator.pushNamed(context, '/upload',
+                                arguments: imagePath);
+                          }
+                        },
                         icon: const Icon(
                           Icons.image_outlined,
                           size: 50,
@@ -164,7 +210,69 @@ class UIKits {
   }
 }
 
-class FireabseDataManager {
+class UploadContentPage extends StatefulWidget {
+  final String imagePath;
+  const UploadContentPage({super.key, required this.imagePath});
+
+  @override
+  State<UploadContentPage> createState() => _UploadContentPageState();
+}
+
+class _UploadContentPageState extends State<UploadContentPage> {
+  final TextEditingController titleController = TextEditingController();
+  Widget _detailForm() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Image(
+            image: FileImage(
+              File(widget.imagePath),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            maxLength: 100,
+            controller: titleController,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'Tittle',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(),
+          child: TextButton(
+            onPressed: () {},
+            child: const Text('Create'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _detailForm(),
+    );
+  }
+}
+
+class FirebaseDataManager {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   getCurrentUserID() {
@@ -173,9 +281,7 @@ class FireabseDataManager {
     return uid;
   }
 
-  getUserCreationContent() {
-    final userID = getCurrentUserID();
-  }
+  getUserCreationContent() {}
 }
 
 class HomePage extends StatefulWidget {
@@ -589,7 +695,7 @@ class _LoginPageState extends State<LoginPage> {
               border: OutlineInputBorder(),
               filled: true,
               fillColor: Colors.white,
-              labelText: 'User Name',
+              labelText: 'Email Address',
               hintText: 'Enter valid mail id as abc@gmail.com',
             ),
           ),
@@ -614,7 +720,7 @@ class _LoginPageState extends State<LoginPage> {
           child: TextButton(
             onPressed: () async {
               try {
-                final credntial =
+                final credential =
                     await FirebaseAuth.instance.signInWithEmailAndPassword(
                   email: emailController.text,
                   password: passwordController.text,
@@ -709,6 +815,7 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  final TextEditingController userNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -732,13 +839,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
           child: TextField(
-            controller: emailController,
+            controller: userNameController,
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               border: OutlineInputBorder(),
               filled: true,
               fillColor: Colors.white,
               labelText: 'User Name',
+              hintText: '',
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+          child: TextField(
+            controller: emailController,
+            decoration: const InputDecoration(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              border: OutlineInputBorder(),
+              filled: true,
+              fillColor: Colors.white,
+              labelText: 'Email Address',
               hintText: 'Enter valid mail id as abc@gmail.com',
             ),
           ),
@@ -771,9 +892,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'weak-password') {
                   debugPrint('The password provided is too weak.');
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('The password provided is too weak.'),
-                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('The password provided is too weak.'),
+                    ),
+                  );
                 } else if (e.code == 'email-already-in-use') {
                   debugPrint('The account already exists for that email.');
                 }
@@ -781,12 +904,27 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 debugPrint(e.toString());
               }
 
+              final db = FirebaseFirestore.instance;
+              final newUserData = <String, String>{
+                'name': userNameController.text,
+                'username': userNameController.text,
+                'email': emailController.text,
+              };
+
               FirebaseAuth.instance.authStateChanges().listen(
                 (User? user) {
                   if (user == null) {
                     debugPrint('User currently signed out!');
                   } else {
                     debugPrint('User is signed in!');
+
+                    db
+                        .collection('usersData')
+                        .doc(FirebaseDataManager().getCurrentUserID())
+                        .set(newUserData, SetOptions(merge: true))
+                        .onError(
+                          (e, _) => debugPrint('Error writing document: $e'),
+                        );
 
                     Navigator.pushReplacement(
                       context,
@@ -881,6 +1019,7 @@ class _SplashPageState extends State<SplashPage> {
                   ) as Route<Object?>);
             } else {
               debugPrint('User is signed in!');
+
               Navigator.pushReplacement(
                   context,
                   Navigator.pushReplacement(
