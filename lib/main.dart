@@ -4,13 +4,12 @@
 
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-//import 'package:permission_handler/permission_handler.dart';
+import 'package:uuid/uuid.dart';
 import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
@@ -62,8 +61,12 @@ class ListContentData {
   final String contentUrl;
   final String contentImageUrl;
 
-  ListContentData(this.contentCreator, this.contentTitle, this.contentUrl,
-      this.contentImageUrl);
+  ListContentData(
+    this.contentCreator,
+    this.contentTitle,
+    this.contentUrl,
+    this.contentImageUrl,
+  );
 }
 
 class ContentData {
@@ -73,9 +76,17 @@ class ContentData {
   final String contentImageUrl;
   final int contentLike;
   final bool contentLikeState;
+  final bool contentSavedState;
 
-  ContentData(this.contentCreator, this.contentTitle, this.contentUrl,
-      this.contentImageUrl, this.contentLike, this.contentLikeState);
+  ContentData(
+    this.contentCreator,
+    this.contentTitle,
+    this.contentUrl,
+    this.contentImageUrl,
+    this.contentLike,
+    this.contentLikeState,
+    this.contentSavedState,
+  );
 }
 
 class UIKits {
@@ -210,6 +221,18 @@ class UIKits {
   }
 }
 
+class FirebaseDataManager {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
+  getCurrentUserID() {
+    final User? user = auth.currentUser;
+    final uid = user?.uid;
+    return uid;
+  }
+
+  getUserCreationContent() {}
+}
+
 class UploadContentPage extends StatefulWidget {
   final String imagePath;
   const UploadContentPage({super.key, required this.imagePath});
@@ -250,7 +273,65 @@ class _UploadContentPageState extends State<UploadContentPage> {
         Padding(
           padding: const EdgeInsets.symmetric(),
           child: TextButton(
-            onPressed: () {},
+            onPressed: () {
+              final uuid = const Uuid().v4();
+
+              final storageRef =
+                  FirebaseStorage.instance.ref().child('contentImage/$uuid');
+
+              File imageFile = File(widget.imagePath);
+              storageRef.putFile(imageFile).snapshotEvents.listen(
+                (taskSnapshot) async {
+                  switch (taskSnapshot.state) {
+                    case TaskState.running:
+                      // ...
+                      break;
+                    case TaskState.paused:
+                      // ...
+                      break;
+                    case TaskState.success:
+                      final db = FirebaseFirestore.instance;
+                      final contentData = <String, dynamic>{
+                        'imageUrl': await storageRef.getDownloadURL(),
+                        'title': titleController.text,
+                        'date': FieldValue.serverTimestamp(),
+                        'creator': FirebaseDataManager().getCurrentUserID(),
+                        'likeNumber': 0,
+                      };
+
+                      db
+                          .collection('ContentData')
+                          .doc(uuid)
+                          .set(contentData)
+                          .then(
+                        (_) {
+                          db
+                              .collection('usersData')
+                              .doc(FirebaseDataManager().getCurrentUserID())
+                              .update(
+                            {
+                              'contentCreated': FieldValue.arrayUnion([uuid])
+                            },
+                          ).then(
+                            (value) => debugPrint('data: updated'),
+                            onError: (e) =>
+                                debugPrint('data: failed to update $e'),
+                          );
+                        },
+                        onError: (e) => debugPrint('data: failed to update $e'),
+                      );
+                      break;
+                    case TaskState.canceled:
+                      // ...
+                      break;
+                    case TaskState.error:
+                      // ...
+                      break;
+                  }
+                },
+              );
+              Navigator.pop(context);
+            },
             child: const Text('Create'),
           ),
         ),
@@ -267,21 +348,10 @@ class _UploadContentPageState extends State<UploadContentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: _detailForm(),
     );
   }
-}
-
-class FirebaseDataManager {
-  final FirebaseAuth auth = FirebaseAuth.instance;
-
-  getCurrentUserID() {
-    final User? user = auth.currentUser;
-    final uid = user?.uid;
-    return uid;
-  }
-
-  getUserCreationContent() {}
 }
 
 class HomePage extends StatefulWidget {
@@ -905,10 +975,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
               }
 
               final db = FirebaseFirestore.instance;
-              final newUserData = <String, String>{
+              final newUserData = <String, dynamic>{
                 'name': userNameController.text,
                 'username': userNameController.text,
                 'email': emailController.text,
+                'profileUrl': '',
+                'contentCreated': [],
+                'contentSaved': [],
               };
 
               FirebaseAuth.instance.authStateChanges().listen(

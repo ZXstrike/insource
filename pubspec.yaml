@@ -39,8 +39,7 @@ dependencies:
   cloud_firestore: ^4.7.1
   firebase_storage: ^11.2.1
   image_picker: ^0.8.7+5
-  file_picker: ^5.3.2
-  permission_handler: any
+  uuid: ^3.0.6
   flutter_masonry_view: ^0.0.2
   flutter_staggered_grid_view: ^0.6.2
 
