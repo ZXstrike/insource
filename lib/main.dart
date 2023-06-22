@@ -56,13 +56,11 @@ void main() async {
 }
 
 class ListContentData {
-  final String contentCreator;
   final String contentTitle;
   final String contentUrl;
   final String contentImageUrl;
 
   ListContentData(
-    this.contentCreator,
     this.contentTitle,
     this.contentUrl,
     this.contentImageUrl,
@@ -223,6 +221,8 @@ class UIKits {
 
 class FirebaseDataManager {
   final FirebaseAuth auth = FirebaseAuth.instance;
+  final firedb = FirebaseFirestore.instance;
+  final storegedb = FirebaseStorage.instance;
 
   getCurrentUserID() {
     final User? user = auth.currentUser;
@@ -230,7 +230,19 @@ class FirebaseDataManager {
     return uid;
   }
 
-  getUserCreationContent() {}
+  getContentDetail(docId) {
+    final firedb = FirebaseFirestore.instance;
+
+    firedb.collection('conntent').doc(docId).get().then(
+      (document) {
+        debugPrint('data : ${document.data() as Map<String, dynamic>}');
+        final data = document.data() as Map<String, dynamic>;
+
+        ContentData(data['creator'], data['title'], docId, data['imageUrl'],
+            data['like'], false, false);
+      },
+    );
+  }
 }
 
 class UploadContentPage extends StatefulWidget {
@@ -362,49 +374,116 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  var indexCount = 16;
+  List<ListContentData> contentDataList = [];
 
-  Widget _masonryGridView() {
-    return MasonryGridView.builder(
-      padding: const EdgeInsets.only(top: 30, right: 4, left: 4, bottom: 6),
-      physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: indexCount,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 8,
-      gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2),
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () {
-          Navigator.pushNamed(context, '/PostDetail',
-              arguments: 'lib/assets/images/${index + 1}.jpg');
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Image(
-                  image: AssetImage('lib/assets/images/${index + 1}.jpg')),
-            ),
-            Container(
-              padding: const EdgeInsets.all(6),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'lib/assets/images/${index + 1}.jpg',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+  @override
+  void initState() {
+    super.initState();
+    final firedb = FirebaseFirestore.instance;
+
+    firedb.collection('ContentData').get().then(
+      (querySnapshot) {
+        debugPrint("Successfully completed");
+        for (var docSnapshot in querySnapshot.docs) {
+          debugPrint('${docSnapshot.id} => ${docSnapshot.data()}');
+          final doc = docSnapshot.data();
+          final data = ListContentData(
+            doc['title'],
+            docSnapshot.id,
+            doc['imageUrl'],
+          );
+          contentDataList.add(data);
+        }
+        setState(() {});
+        debugPrint(contentDataList.length.toString());
+      },
+      onError: (e) => debugPrint("Error completing: $e"),
+    );
+  }
+
+  Widget _masonryView() {
+    return SingleChildScrollView(
+      child: MasonryView(
+        itemRadius: 0,
+        itemPadding: 0,
+        listOfItem: contentDataList,
+        numberOfColumn: 2,
+        itemBuilder: (contentData) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, '/PostDetail',
+                    arguments: contentData.contentUrl);
+              },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.network(contentData.contentImageUrl),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      contentData.contentTitle,
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  )
+                ],
               ),
-            )
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
+
+  // Widget _masonryGridView() {
+  //   return MasonryGridView.builder(
+  //     padding: const EdgeInsets.only(top: 30, right: 4, left: 4, bottom: 6),
+  //     physics: const AlwaysScrollableScrollPhysics(),
+  //     itemCount: contentDataList.length,
+  //     addAutomaticKeepAlives: false,
+  //     mainAxisSpacing: 12,
+  //     crossAxisSpacing: 8,
+  //     gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
+  //         crossAxisCount: 2),
+  //     itemBuilder: (context, index) {
+  //       ListContentData contentData = contentDataList[index];
+  //       return GestureDetector(
+  //         onTap: () {
+  //           Navigator.pushNamed(context, '/PostDetail',
+  //               arguments: contentData.contentUrl);
+  //         },
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.start,
+  //           children: [
+  //             ClipRRect(
+  //               borderRadius: BorderRadius.circular(15),
+  //               child: Image.network(contentData.contentImageUrl),
+  //             ),
+  //             Container(
+  //               padding: const EdgeInsets.all(6),
+  //               alignment: Alignment.centerLeft,
+  //               child: Text(
+  //                 contentData.contentTitle,
+  //                 style: const TextStyle(color: Colors.white, fontSize: 12),
+  //               ),
+  //             )
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
-      body: _masonryGridView(),
+      body: _masonryView(),
       bottomNavigationBar: UIKits().bottomNavBar(context, 0),
     );
   }
@@ -419,7 +498,41 @@ class PostDetail extends StatefulWidget {
 }
 
 class _PostDetailState extends State<PostDetail> {
+  // var contentCreator = '';
+  // var contentTitle = '';
+  // var contentUrl = '';
+  // var contentImageUrl = '';
+  // var contentLike = 0;
+  // var contentLikeState = false;
+  // // var contentSavedState = false;
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   final contentData =
+  //       FirebaseDataManager().getContentDetil(widget.item).toString();
+  //   final firedb = FirebaseFirestore.instance;
+
+  //   firedb.collection('ContentData').doc(widget.item).get().then(
+  //     (doc) {
+  //       debugPrint('map : ${doc.data()}');
+  //       contentCreator = doc['creator'];
+  //       contentTitle = doc['title'];
+  //       contentUrl = widget.item;
+  //       contentImageUrl = doc['imageUrl'];
+  //       debugPrint('debug : ${doc['imageUrl']}');
+  //       contentLike = doc['like'];
+
+  //       setState(() {});
+  //       debugPrint(
+  //           '$contentCreator, $contentTitle, $contentUrl, $contentImageUrl');
+  //     },
+  //     onError: (e) => debugPrint("Error completing: $e"),
+  //   );
+  // }
+
   Widget _postContent() {
+    final contentData = FirebaseDataManager().getContentDetail(widget.item);
     return Container(
       color: const Color.fromARGB(255, 15, 15, 15),
       child: Column(
@@ -430,7 +543,7 @@ class _PostDetailState extends State<PostDetail> {
               color: const Color.fromARGB(255, 36, 36, 36),
               child: Column(
                 children: [
-                  Image(image: AssetImage(widget.item)),
+                  Image.network(contentData.imageUrl),
                   Container(
                     padding: const EdgeInsets.only(
                         top: 15, bottom: 5, right: 15, left: 15),
@@ -438,9 +551,9 @@ class _PostDetailState extends State<PostDetail> {
                       children: [
                         Container(
                           padding: const EdgeInsets.only(right: 15),
-                          child: CircleAvatar(
+                          child: const CircleAvatar(
                             radius: 25,
-                            foregroundImage: AssetImage(widget.item),
+                            backgroundColor: Colors.blue,
                           ),
                         ),
                         Expanded(
@@ -982,6 +1095,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 'profileUrl': '',
                 'contentCreated': [],
                 'contentSaved': [],
+                'contentLiked': [],
               };
 
               FirebaseAuth.instance.authStateChanges().listen(
@@ -1004,7 +1118,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HomePage()),
+                          builder: (context) => const HomePage(),
+                        ),
                       ) as Route<Object?>,
                     );
                   }
