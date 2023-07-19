@@ -1,81 +1,79 @@
-//import 'cust_fun.dart';
-
-// ignore_for_file: unused_local_variable, use_build_context_synchronously
+// ignore_for_file: unused_local_variable, use_build_context_synchronously, prefer_typing_uninitialized_variables
 
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:insource/ui/authUI/login_screen.dart';
+import 'package:insource/ui/authUI/register_screen.dart';
+import 'package:insource/ui/authUI/splash_screen.dart';
+import 'package:insource/ui/homeUI/home_screen.dart';
+import 'package:insource/utils/firebase_utils.dart';
 import 'package:uuid/uuid.dart';
-import 'firebase_options.dart';
 
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_masonry_view/flutter_masonry_view.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  initFirebaseOption();
+  runApp(const Main());
+}
 
-  runApp(
-    MaterialApp(
+class Main extends StatelessWidget {
+  const Main({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
       title: "Insource prototype",
+      debugShowCheckedModeBanner: false,
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/':
-            return MaterialPageRoute(builder: (context) => const SplashPage());
-          case '/login':
-            return MaterialPageRoute(builder: (context) => const LoginPage());
-          case '/home':
-            return MaterialPageRoute(builder: (context) => const HomePage());
-          case '/upload':
+            return MaterialPageRoute(
+                builder: (context) => const SplashScreen());
+          case '/loginScreen':
+            return MaterialPageRoute(builder: (context) => const LoginScreen());
+          case '/registerScreen':
+            return MaterialPageRoute(
+                builder: (context) => const RegisterScreen());
+          case '/homeScreen':
+            return MaterialPageRoute(builder: (context) => const HomeScreen());
+          case '/uploadScreen':
             return MaterialPageRoute(
               builder: (context) => UploadContentPage(
                 imagePath: settings.arguments.toString(),
               ),
             );
-          case '/PostDetail':
+          case '/postDetail':
             return MaterialPageRoute(
               builder: (context) => PostDetail(
                 item: settings.arguments.toString(),
               ),
             );
-          case '/accountPage':
-            return MaterialPageRoute(builder: (context) => const AccountPage());
         }
         return null;
       },
-    ),
-  );
+    );
+  }
 }
 
 class ListContentData {
-  final String contentTitle;
-  final String contentUrl;
-  final String contentImageUrl;
-
   ListContentData(
     this.contentTitle,
     this.contentUrl,
     this.contentImageUrl,
   );
+
+  final String contentImageUrl;
+  final String contentTitle;
+  final String contentUrl;
 }
 
 class ContentData {
-  final String contentCreator;
-  final String contentTitle;
-  final String contentUrl;
-  final String contentImageUrl;
-  final int contentLike;
-  final bool contentLikeState;
-  final bool contentSavedState;
-
   ContentData(
     this.contentCreator,
     this.contentTitle,
@@ -85,6 +83,14 @@ class ContentData {
     this.contentLikeState,
     this.contentSavedState,
   );
+
+  final String contentCreator;
+  final String contentImageUrl;
+  final int contentLike;
+  final bool contentLikeState;
+  final bool contentSavedState;
+  final String contentTitle;
+  final String contentUrl;
 }
 
 class UIKits {
@@ -231,23 +237,22 @@ class FirebaseDataManager {
   }
 
   getContentDetail(docId) {
-    final firedb = FirebaseFirestore.instance;
-
-    firedb.collection('conntent').doc(docId).get().then(
+    firedb.collection('ContentData').doc(docId).get().then(
       (document) {
         debugPrint('data : ${document.data() as Map<String, dynamic>}');
         final data = document.data() as Map<String, dynamic>;
 
-        ContentData(data['creator'], data['title'], docId, data['imageUrl'],
-            data['like'], false, false);
+        return ContentData(data['creator'], data['title'], docId,
+            data['imageUrl'], data['like'], false, false);
       },
     );
   }
 }
 
 class UploadContentPage extends StatefulWidget {
-  final String imagePath;
   const UploadContentPage({super.key, required this.imagePath});
+
+  final String imagePath;
 
   @override
   State<UploadContentPage> createState() => _UploadContentPageState();
@@ -255,6 +260,13 @@ class UploadContentPage extends StatefulWidget {
 
 class _UploadContentPageState extends State<UploadContentPage> {
   final TextEditingController titleController = TextEditingController();
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    super.dispose();
+  }
+
   Widget _detailForm() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -352,12 +364,6 @@ class _UploadContentPageState extends State<UploadContentPage> {
   }
 
   @override
-  void dispose() {
-    titleController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -374,7 +380,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<ListContentData> contentDataList = [];
+  List contentDataList = [];
 
   @override
   void initState() {
@@ -402,6 +408,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _masonryView() {
+    setState(() {});
     return SingleChildScrollView(
       child: MasonryView(
         itemRadius: 0,
@@ -440,45 +447,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Widget _masonryGridView() {
-  //   return MasonryGridView.builder(
-  //     padding: const EdgeInsets.only(top: 30, right: 4, left: 4, bottom: 6),
-  //     physics: const AlwaysScrollableScrollPhysics(),
-  //     itemCount: contentDataList.length,
-  //     addAutomaticKeepAlives: false,
-  //     mainAxisSpacing: 12,
-  //     crossAxisSpacing: 8,
-  //     gridDelegate: const SliverSimpleGridDelegateWithFixedCrossAxisCount(
-  //         crossAxisCount: 2),
-  //     itemBuilder: (context, index) {
-  //       ListContentData contentData = contentDataList[index];
-  //       return GestureDetector(
-  //         onTap: () {
-  //           Navigator.pushNamed(context, '/PostDetail',
-  //               arguments: contentData.contentUrl);
-  //         },
-  //         child: Column(
-  //           mainAxisAlignment: MainAxisAlignment.start,
-  //           children: [
-  //             ClipRRect(
-  //               borderRadius: BorderRadius.circular(15),
-  //               child: Image.network(contentData.contentImageUrl),
-  //             ),
-  //             Container(
-  //               padding: const EdgeInsets.all(6),
-  //               alignment: Alignment.centerLeft,
-  //               child: Text(
-  //                 contentData.contentTitle,
-  //                 style: const TextStyle(color: Colors.white, fontSize: 12),
-  //               ),
-  //             )
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -491,6 +459,7 @@ class _HomePageState extends State<HomePage> {
 
 class PostDetail extends StatefulWidget {
   const PostDetail({super.key, required this.item});
+
   final String item;
 
   @override
@@ -498,41 +467,27 @@ class PostDetail extends StatefulWidget {
 }
 
 class _PostDetailState extends State<PostDetail> {
-  // var contentCreator = '';
-  // var contentTitle = '';
-  // var contentUrl = '';
-  // var contentImageUrl = '';
-  // var contentLike = 0;
-  // var contentLikeState = false;
-  // // var contentSavedState = false;
+  var dataList;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final contentData =
-  //       FirebaseDataManager().getContentDetil(widget.item).toString();
-  //   final firedb = FirebaseFirestore.instance;
+  @override
+  void initState() {
+    super.initState();
+    final itemGetter = FirebaseFirestore.instance
+        .collection('ContentData')
+        .doc(widget.item)
+        .get();
 
-  //   firedb.collection('ContentData').doc(widget.item).get().then(
-  //     (doc) {
-  //       debugPrint('map : ${doc.data()}');
-  //       contentCreator = doc['creator'];
-  //       contentTitle = doc['title'];
-  //       contentUrl = widget.item;
-  //       contentImageUrl = doc['imageUrl'];
-  //       debugPrint('debug : ${doc['imageUrl']}');
-  //       contentLike = doc['like'];
-
-  //       setState(() {});
-  //       debugPrint(
-  //           '$contentCreator, $contentTitle, $contentUrl, $contentImageUrl');
-  //     },
-  //     onError: (e) => debugPrint("Error completing: $e"),
-  //   );
-  // }
+    itemGetter.then(
+      (document) {
+        dataList = document.data();
+        setState(() {});
+        debugPrint(dataList);
+      },
+      onError: (e) => debugPrint("Error completing: $e"),
+    );
+  }
 
   Widget _postContent() {
-    final contentData = FirebaseDataManager().getContentDetail(widget.item);
     return Container(
       color: const Color.fromARGB(255, 15, 15, 15),
       child: Column(
@@ -543,7 +498,7 @@ class _PostDetailState extends State<PostDetail> {
               color: const Color.fromARGB(255, 36, 36, 36),
               child: Column(
                 children: [
-                  Image.network(contentData.imageUrl),
+                  Image.network(dataList['imageUrl']),
                   Container(
                     padding: const EdgeInsets.only(
                         top: 15, bottom: 5, right: 15, left: 15),
@@ -559,7 +514,7 @@ class _PostDetailState extends State<PostDetail> {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            widget.item,
+                            dataList['creator'],
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -574,7 +529,7 @@ class _PostDetailState extends State<PostDetail> {
                     padding: const EdgeInsets.symmetric(
                         vertical: 15, horizontal: 25),
                     child: Text(
-                      widget.item,
+                      dataList['title'],
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -774,7 +729,7 @@ class _AccountPageState extends State<AccountPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const SplashPage(),
+              builder: (context) => const SplashScreen(),
             ),
           ) as Route<Object?>,
         );
@@ -851,6 +806,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean uo the controller when the widget is disposed
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Widget _userInput() {
     return Column(
@@ -973,14 +936,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  void dispose() {
-    // Clean uo the controller when the widget is disposed
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -998,9 +953,16 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
-  final TextEditingController userNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController userNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Widget _userInput() {
     return Column(
@@ -1160,77 +1122,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: _userInput(),
-    );
-  }
-}
-
-class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
-
-  @override
-  State<SplashPage> createState() => _SplashPageState();
-}
-
-class _SplashPageState extends State<SplashPage> {
-  @override
-  void initState() {
-    super.initState();
-    FirebaseAuth.instance.authStateChanges().listen(
-      (User? user) {
-        Timer(
-          const Duration(
-            seconds: 1,
-            milliseconds: 50,
-          ),
-          () {
-            if (user == null) {
-              debugPrint('User is currently signed out!');
-              Navigator.pushReplacement(
-                  context,
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginPage(),
-                    ),
-                  ) as Route<Object?>);
-            } else {
-              debugPrint('User is signed in!');
-
-              Navigator.pushReplacement(
-                  context,
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HomePage(),
-                    ),
-                  ) as Route<Object?>);
-            }
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.person,
-        color: Colors.white,
-      ),
     );
   }
 }
