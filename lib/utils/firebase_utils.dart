@@ -22,19 +22,6 @@ class FireAuth {
     FirebaseAuth.instance.signOut();
   }
 
-  stateStatus(Future function) {
-    FirebaseAuth.instance.authStateChanges().listen(
-      (User? user) {
-        if (user == null) {
-          debugPrint('User currently signed out!');
-        } else {
-          debugPrint('User is signed in!');
-          function;
-        }
-      },
-    );
-  }
-
   login(email, password) async {
     try {
       FirebaseAuth.instance.signInWithEmailAndPassword(

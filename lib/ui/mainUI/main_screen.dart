@@ -2,22 +2,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:insource/ui/homeUI/account_view.dart';
-import 'package:insource/ui/homeUI/mansory_list.dart';
+import 'package:insource/ui/mainUI/accountView/account_view.dart';
+import 'package:insource/ui/mainUI/contentView/content_list.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MainScreenState extends State<MainScreen> {
   int screenIndex = 0;
 
   Future uploadModals() {
     return showModalBottomSheet(
       context: context,
+      backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       barrierColor: Colors.black87,
       shape: const ContinuousRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -32,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               IconButton(
                 iconSize: 60,
+                color: Colors.white,
                 onPressed: () async {
                   getImage() async {
                     ImagePicker imagePicker = ImagePicker();
@@ -44,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   String? imagePath = await getImage();
                   if (imagePath != null) {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/upload',
+                    Navigator.pushNamed(context, '/uploadScreen',
                         arguments: imagePath);
                   }
                 },
@@ -55,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               IconButton(
                 iconSize: 60,
+                color: Colors.white,
                 onPressed: () async {
                   getImage() async {
                     ImagePicker imagePicker = ImagePicker();
@@ -67,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   String? imagePath = await getImage();
                   if (imagePath != null) {
                     Navigator.pop(context);
-                    Navigator.pushNamed(context, '/upload',
+                    Navigator.pushNamed(context, '/uploadScreen',
                         arguments: imagePath);
                   }
                 },
@@ -87,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
-      body: screenIndex == 0 ? const MansoryList() : const AccountView(),
+      body: screenIndex == 0 ? const ContentList() : const AccountView(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: screenIndex,
         backgroundColor: const Color.fromARGB(255, 0, 0, 0),

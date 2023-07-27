@@ -3,14 +3,16 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:insource/ui/authUI/login_screen.dart';
 import 'package:insource/ui/authUI/register_screen.dart';
 import 'package:insource/ui/authUI/splash_screen.dart';
-import 'package:insource/ui/homeUI/home_screen.dart';
-import 'package:insource/utils/firebase_utils.dart';
+import 'package:insource/ui/mainUI/main_screen.dart';
+import 'package:insource/ui/mainUI/upload_screen.dart';
+import 'package:insource/utils/firebase_options.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter/material.dart';
@@ -18,7 +20,10 @@ import 'dart:async';
 import 'package:flutter_masonry_view/flutter_masonry_view.dart';
 
 void main() async {
-  initFirebaseOption();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const Main());
 }
 
@@ -41,10 +46,10 @@ class Main extends StatelessWidget {
             return MaterialPageRoute(
                 builder: (context) => const RegisterScreen());
           case '/homeScreen':
-            return MaterialPageRoute(builder: (context) => const HomeScreen());
+            return MaterialPageRoute(builder: (context) => const MainScreen());
           case '/uploadScreen':
             return MaterialPageRoute(
-              builder: (context) => UploadContentPage(
+              builder: (context) => ContentUploadScreen(
                 imagePath: settings.arguments.toString(),
               ),
             );

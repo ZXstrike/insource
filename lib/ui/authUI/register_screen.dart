@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:insource/ui/widgets/input_widget.dart';
-import 'package:insource/utils/firebase_utils.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,13 +16,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  void _registerFunction() {
+    try {
+      FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        debugPrint('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        debugPrint('The account already exists for that email.');
+      }
+      Fluttertoast.showToast(
+        msg: e.code,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.white,
+        backgroundColor: Colors.blue,
+        fontSize: 16,
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+    FirebaseAuth.instance.authStateChanges().listen(
+      (User? user) {
+        if (user == null) {
+          debugPrint('User currently signed out!');
+        } else {
+          User? currentUser = FirebaseAuth.instance.currentUser;
+          final userData = <String, dynamic>{
+            'userName': usernameController.text,
+            'userEmail': emailController.text,
+            'profileImageUrl':
+                'https://firebasestorage.googleapis.com/v0/b/insource-c4f76.appspot.com/o/personIcon.png?alt=media&token=a1494928-5cba-4fa6-b2f3-97b8908a0002',
+          };
+          FirebaseFirestore.instance
+              .collection('usersData')
+              .doc(currentUser?.uid)
+              .set(userData);
+          debugPrint('User is signed in!');
+
+          Navigator.popAndPushNamed(context, '/homeScreen');
+        }
+      },
+    );
+  }
+
   _navigatorFunction() {
     Navigator.popAndPushNamed(context, '/loginScreen');
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    usernameController;
+    emailController;
+    passwordController;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromARGB(255, 10, 10, 10),
       body: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -68,11 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 35),
               ButtonSpace(
-                onPressed: () => FireAuth().register(
-                  usernameController.text,
-                  emailController.text,
-                  passwordController.text,
-                ),
+                onPressed: () => _registerFunction(),
                 radius: 7,
                 padding: 10,
                 boxColor: Colors.blue,

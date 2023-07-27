@@ -2,9 +2,8 @@
 
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import '../../utils/firebase_utils.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     Timer(const Duration(seconds: 2), () async {
-      if (await FireAuth().getSessionStatus()) {
+      if (FirebaseAuth.instance.currentUser != null) {
         debugPrint('User sign in!');
         Navigator.popAndPushNamed(context, '/homeScreen');
       } else {
@@ -32,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Color.fromARGB(255, 10, 10, 10),
       body: Center(
         child: Column(
