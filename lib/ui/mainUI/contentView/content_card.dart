@@ -9,6 +9,8 @@ class ContentCard extends StatelessWidget {
   final String creator;
   final ImageProvider<Object>? creatorImage;
   final TextStyle? style;
+  final void Function()? likeFunction;
+  final Widget icon;
 
   const ContentCard({
     super.key,
@@ -20,6 +22,8 @@ class ContentCard extends StatelessWidget {
     required this.creator,
     this.creatorImage,
     this.style,
+    this.likeFunction,
+    required this.icon,
   });
 
   @override
@@ -69,6 +73,7 @@ class ContentCard extends StatelessWidget {
                 ),
               ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -98,10 +103,19 @@ class ContentCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    creator,
-                    style: style,
-                  )
+                  Expanded(
+                    child: Text(
+                      creator,
+                      style: style,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: likeFunction,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: icon,
+                    ),
+                  ),
                 ],
               ),
             ],

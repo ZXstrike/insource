@@ -13,6 +13,7 @@ class UserContentList extends StatefulWidget {
 class _UserContentListState extends State<UserContentList> {
   final User? user = FirebaseAuth.instance.currentUser;
   List<Map> contentList = [];
+  final User? currentUser = FirebaseAuth.instance.currentUser;
 
   void _getData() {
     FirebaseFirestore.instance
@@ -27,8 +28,10 @@ class _UserContentListState extends State<UserContentList> {
           debugPrint(doc.toString());
 
           Map<String, dynamic> contentData = {
+            'documentId': docSnapshot.id,
             'contentImage': doc['imageUrl'],
             'title': doc['title'],
+            'liked': doc['liked'],
           };
 
           FirebaseFirestore.instance
@@ -51,6 +54,36 @@ class _UserContentListState extends State<UserContentList> {
         setState(() {});
       },
     );
+  }
+
+  void _likedFunction(index) {
+    if (contentList[index]['liked'].contains(currentUser?.uid)) {
+      debugPrint(index.toString());
+      FirebaseFirestore.instance
+          .collection('contentsData')
+          .doc(contentList[index]['documentId'])
+          .update({
+        'liked': FieldValue.arrayRemove([currentUser?.uid])
+      }).then((value) {
+        contentList[index]['liked'].remove(currentUser?.uid);
+        debugPrint(contentList[index]['liked'].toString());
+        setState(() {});
+      }, onError: (e) => debugPrint("Error updating document $e"));
+      setState(() {});
+    } else {
+      debugPrint(index.toString());
+      FirebaseFirestore.instance
+          .collection('contentsData')
+          .doc(contentList[index]['documentId'])
+          .update({
+        'liked': FieldValue.arrayUnion([currentUser?.uid])
+      }).then((value) {
+        contentList[index]['liked'].add(currentUser?.uid);
+        debugPrint(contentList[index]['liked'].toString());
+        setState(() {});
+      }, onError: (e) => debugPrint("Error updating document $e"));
+      setState(() {});
+    }
   }
 
   @override
@@ -100,6 +133,19 @@ class _UserContentListState extends State<UserContentList> {
               title: contentList[index]['title'],
               creator: contentList[index]['creator'],
               style: const TextStyle(color: Colors.white, fontSize: 18),
+              icon:
+                  contentList[index]['liked'].contains(currentUser?.uid) == true
+                      ? const Icon(
+                          Icons.favorite,
+                          size: 35,
+                          color: Colors.white,
+                        )
+                      : const Icon(
+                          Icons.favorite_outline_outlined,
+                          size: 35,
+                          color: Colors.white,
+                        ),
+              likeFunction: () => _likedFunction(index),
             ),
           ),
         ),

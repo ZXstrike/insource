@@ -1,6 +1,5 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:insource/ui/mainUI/contentView/content_card.dart';
 
@@ -15,6 +14,7 @@ class _ContentListState extends State<ContentList> {
   final ScrollController _scrollController = ScrollController();
   List<Map> contentList = [];
   List<Map> pageList = [];
+  final User? currentUser = FirebaseAuth.instance.currentUser;
   // bool _isLoading = false;
 
   void _getData() {
@@ -26,8 +26,10 @@ class _ContentListState extends State<ContentList> {
           debugPrint(doc.toString());
 
           Map<String, dynamic> contentData = {
+            'documentId': docSnapshot.id,
             'contentImage': doc['imageUrl'],
             'title': doc['title'],
+            'liked': doc['liked'],
           };
 
           FirebaseFirestore.instance
@@ -47,18 +49,8 @@ class _ContentListState extends State<ContentList> {
           debugPrint('list data: $contentData');
           contentList.add(contentData);
         }
-
-        if (contentList.length > 999) {
-          for (var i = 0; i < 10; i++) {
-            int randomIndex = Random().nextInt(contentList.length);
-            pageList.add(contentList[randomIndex]);
-            contentList.removeAt(randomIndex);
-            debugPrint(i.toString());
-          }
-        } else {
-          contentList.shuffle();
-          pageList.addAll(contentList);
-        }
+        contentList.shuffle();
+        pageList.addAll(contentList);
         setState(() {});
       },
     );
@@ -67,16 +59,8 @@ class _ContentListState extends State<ContentList> {
   @override
   void initState() {
     super.initState();
-    // _scrollController.addListener(_onScroll);
     _getData();
   }
-
-  // void _onScroll() {
-  //   if (_scrollController.position.pixels ==
-  //       _scrollController.position.maxScrollExtent) {
-  //     _loadMore();
-  //   }
-  // }
 
   Future<void> _onRefresh() async {
     contentList.clear();
@@ -87,25 +71,35 @@ class _ContentListState extends State<ContentList> {
     });
   }
 
-  // void _loadMore() async {
-  //   if (!_isLoading) {
-  //     setState(() {
-  //       _isLoading = true;
-  //     });
-  //     if (contentList.length > 10) {
-  //       for (var i = 0; i < 10; i++) {
-  //         int randomIndex = Random().nextInt(contentList.length);
-  //         pageList.add(contentList[randomIndex]);
-  //         contentList.removeAt(randomIndex);
-  //         debugPrint(i.toString());
-  //       }
-  //     } else {
-  //       setState(() {
-  //         _isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
+  void _likedFunction(index) {
+    if (pageList[index]['liked'].contains(currentUser?.uid)) {
+      debugPrint(index.toString());
+      FirebaseFirestore.instance
+          .collection('contentsData')
+          .doc(pageList[index]['documentId'])
+          .update({
+        'liked': FieldValue.arrayRemove([currentUser?.uid])
+      }).then((value) {
+        pageList[index]['liked'].remove(currentUser?.uid);
+        debugPrint(pageList[index]['liked'].toString());
+        setState(() {});
+      }, onError: (e) => debugPrint("Error updating document $e"));
+      setState(() {});
+    } else {
+      debugPrint(index.toString());
+      FirebaseFirestore.instance
+          .collection('contentsData')
+          .doc(pageList[index]['documentId'])
+          .update({
+        'liked': FieldValue.arrayUnion([currentUser?.uid])
+      }).then((value) {
+        pageList[index]['liked'].add(currentUser?.uid);
+        debugPrint(pageList[index]['liked'].toString());
+        setState(() {});
+      }, onError: (e) => debugPrint("Error updating document $e"));
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +131,19 @@ class _ContentListState extends State<ContentList> {
               title: pageList[index]['title'],
               creator: pageList[index]['creator'],
               style: const TextStyle(color: Colors.white, fontSize: 18),
+              icon:
+                  contentList[index]['liked'].contains(currentUser?.uid) == true
+                      ? const Icon(
+                          Icons.favorite,
+                          size: 35,
+                          color: Colors.white,
+                        )
+                      : const Icon(
+                          Icons.favorite_outline_outlined,
+                          size: 35,
+                          color: Colors.white,
+                        ),
+              likeFunction: () => _likedFunction(index),
             ),
           ),
         ),
