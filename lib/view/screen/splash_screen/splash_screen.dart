@@ -1,9 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'dart:async';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:insource/viewmodel/splash_screen_provider.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,19 +11,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  late SplashViewProvider splashProvider;
+
   @override
   void initState() {
     super.initState();
-
-    Timer(const Duration(seconds: 2), () async {
-      if (FirebaseAuth.instance.currentUser != null) {
-        debugPrint('User sign in!');
-        Navigator.popAndPushNamed(context, '/homeScreen');
-      } else {
-        debugPrint('User sign out!');
-        Navigator.popAndPushNamed(context, '/loginScreen');
-      }
-    });
+    splashProvider = Provider.of<SplashViewProvider>(context, listen: false);
+    splashProvider.context = context;
+    splashProvider.getCurrentState();
   }
 
   @override
@@ -38,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image(image: AssetImage('lib/assets/icons/is.png')),
+            Image(image: AssetImage('assets/icons/is.png')),
             Text(
               'Insource',
               style: TextStyle(

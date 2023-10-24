@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:insource/ui/widgets/input_widget.dart';
+import 'package:insource/view/widgets/input_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class ContentUploadScreen extends StatefulWidget {
