@@ -19,8 +19,6 @@ class _UserContentListState extends State<UserContentList> {
 
     listProvider =
         Provider.of<PersonalListViewProvider>(context, listen: false);
-
-    listProvider.getContentList();
   }
 
   @override

@@ -1,20 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:insource/model/content_model.dart';
-import 'package:insource/services/firebase/firestore_services.dart';
+import 'package:insource/services/firebase_services.dart';
 
 class PersonalListViewProvider extends ChangeNotifier {
   final User? currentUser = FirebaseAuth.instance.currentUser;
 
   List<ContentData> contentList = [];
 
-  // PersonalListViewProvider() {
-  //   getContentList();
-  //   notifyListeners();
-  // }
+  PersonalListViewProvider() {
+    getContentList();
+    notifyListeners();
+  }
 
   void getContentList() async {
-    contentList = await FireStore().getPersonalContentList(currentUser!);
+    contentList = await FirebaseServices.getPersonalContentList(currentUser!);
     contentList.reversed;
 
     debugPrint(contentList.toString());

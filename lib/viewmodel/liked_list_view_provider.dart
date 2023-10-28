@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:insource/model/content_model.dart';
-import 'package:insource/services/firebase/firestore_services.dart';
+import 'package:insource/services/firebase_services.dart';
 
 class LikedListViewProvider extends ChangeNotifier {
   final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -14,7 +14,7 @@ class LikedListViewProvider extends ChangeNotifier {
   }
 
   void getContentList() async {
-    contentList = await FireStore().getLikedContentList(currentUser!);
+    contentList = await FirebaseServices.getLikedContentList(currentUser!);
     contentList.reversed;
     debugPrint(contentList.toString());
   }

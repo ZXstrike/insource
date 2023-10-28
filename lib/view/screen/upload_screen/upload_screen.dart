@@ -2,68 +2,25 @@
 
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:insource/view/widgets/input_widget.dart';
-import 'package:uuid/uuid.dart';
+import 'package:insource/viewmodel/main_view_provider.dart';
+import 'package:provider/provider.dart';
 
 class ContentUploadScreen extends StatefulWidget {
-  const ContentUploadScreen({super.key, required this.imagePath});
-
-  final String imagePath;
+  const ContentUploadScreen({super.key});
 
   @override
   State<ContentUploadScreen> createState() => _ContentUploadScreenState();
 }
 
 class _ContentUploadScreenState extends State<ContentUploadScreen> {
-  final TextEditingController contentTitleController = TextEditingController();
+  late MainViewProvider providers;
 
-  _uploadFunction() {
-    final uuid = const Uuid().v4();
-    final User? currentUser = FirebaseAuth.instance.currentUser;
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child('contentImage/${currentUser?.uid}/$uuid');
-
-    File imageFile = File(widget.imagePath);
-
-    storageRef.putFile(imageFile).snapshotEvents.listen((taskSnapshot) async {
-      switch (taskSnapshot.state) {
-        case TaskState.running:
-          // ...
-          break;
-        case TaskState.paused:
-          // ...
-          break;
-        case TaskState.success:
-          final contentData = <String, dynamic>{
-            'imageUrl': await storageRef.getDownloadURL(),
-            'title': contentTitleController.text,
-            'date': FieldValue.serverTimestamp(),
-            'creator': currentUser?.uid,
-            'liked': []
-          };
-          FirebaseFirestore.instance
-              .collection('contentsData')
-              .doc(uuid)
-              .set(contentData)
-              .then(
-                (value) => debugPrint('Upload Status: ${taskSnapshot.state}'),
-                onError: (e) => debugPrint('Upload Status: $e'),
-              );
-          Navigator.popAndPushNamed(context, '/homeScreen');
-          break;
-        case TaskState.canceled:
-          // ...
-          break;
-        case TaskState.error:
-          // ...
-          break;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    providers = Provider.of<MainViewProvider>(context, listen: false);
   }
 
   @override
@@ -71,25 +28,28 @@ class _ContentUploadScreenState extends State<ContentUploadScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: const Color.fromARGB(10, 10, 10, 255),
-      body: Container(
+      body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SingleChildScrollView(
-              child: Image(image: FileImage(File(widget.imagePath))),
+              child: Image(
+                image: FileImage(File(providers.selectedImagePath!)),
+                fit: BoxFit.cover,
+              ),
             ),
             TextInputSpace(
               verticalOutterPadding: 20,
               radius: 10,
-              inputController: contentTitleController,
+              inputController: providers.contentTitleController,
               inputHint: 'Title',
               inputHintStyle: const TextStyle(fontSize: 18),
             ),
             ButtonSpace(
               radius: 5,
-              onPressed: _uploadFunction,
+              onPressed: providers.uploadFunction,
               child: const Text(
                 'Upload',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),

@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:insource/services/firebase/firestore_services.dart';
+import 'package:insource/services/firebase_services.dart';
 
 class RegisterViewProvider extends ChangeNotifier {
   final TextEditingController usernameController = TextEditingController();
@@ -63,7 +63,7 @@ class RegisterViewProvider extends ChangeNotifier {
                 'https://firebasestorage.googleapis.com/v0/b/insource-c4f76.appspot.com/o/personIcon.png?alt=media&token=a1494928-5cba-4fa6-b2f3-97b8908a0002',
           };
 
-          FireStore().setUserData(currentUser!, userData);
+          FirebaseServices.setUserData(currentUser!, userData);
           debugPrint('User is signed in!');
 
           Navigator.popAndPushNamed(context, '/homeScreen');

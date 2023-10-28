@@ -78,9 +78,7 @@ class Main extends StatelessWidget {
                   builder: (context) => const MainScreen());
             case '/uploadScreen':
               return MaterialPageRoute(
-                builder: (context) => ContentUploadScreen(
-                  imagePath: settings.arguments.toString(),
-                ),
+                builder: (context) => const ContentUploadScreen(),
               );
           }
           return null;

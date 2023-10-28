@@ -5,15 +5,15 @@ import 'package:insource/const/string.dart';
 import 'package:insource/model/content_model.dart';
 import 'package:insource/model/user_personal_model.dart';
 
-class FireStore {
-  void setUserData(User currentUser, Map<String, dynamic> userData) {
+class FirebaseServices {
+  static void setUserData(User currentUser, Map<String, dynamic> userData) {
     FirebaseFirestore.instance
         .collection('usersData')
         .doc(currentUser.uid)
         .set(userData);
   }
 
-  Future<UserPersonalData> getUserData(String userid) async {
+  static Future<UserPersonalData> getUserData(String userid) async {
     UserPersonalData userData = await FirebaseFirestore.instance
         .collection(StringConst.userData)
         .doc(userid)
@@ -26,7 +26,7 @@ class FireStore {
     return userData;
   }
 
-  Future<List<ContentData>> getContentList() async {
+  static Future<List<ContentData>> getContentList() async {
     List<ContentData> contentList = [];
 
     await FirebaseFirestore.instance.collection('contentsData').get().then(
@@ -44,6 +44,12 @@ class FireStore {
             'creatorId': docData['creator'],
           };
 
+          if (!docData.containsKey('saved')) {
+            await FirebaseFirestore.instance
+                .collection('contentsData')
+                .doc(userDoc.id)
+                .update({'saved': []});
+          }
           await FirebaseFirestore.instance
               .collection('usersData')
               .doc(docData['creator'])
@@ -67,12 +73,13 @@ class FireStore {
     return contentList;
   }
 
-  Future<List<ContentData>> getPersonalContentList(User user) async {
+  static Future<List<ContentData>> getPersonalContentList(User user) async {
     List<ContentData> contentList = [];
 
     await FirebaseFirestore.instance
         .collection('contentsData')
         .where("creator", isEqualTo: user.uid)
+        .orderBy('date', descending: true)
         .get()
         .then(
       (value) async {
@@ -112,7 +119,7 @@ class FireStore {
     return contentList;
   }
 
-  Future<List<ContentData>> getLikedContentList(User user) async {
+  static Future<List<ContentData>> getLikedContentList(User user) async {
     List<ContentData> contentList = [];
 
     await FirebaseFirestore.instance
@@ -157,14 +164,12 @@ class FireStore {
     return contentList;
   }
 
-  Future searchUser(String query) async {
-    FirebaseFirestore.instance
-        .collection(StringConst.userData)
-        .where('userName',
-            isGreaterThanOrEqualTo: query,
-            isLessThan: query.substring(0, query.length - 1) +
-                String.fromCharCode(query.codeUnitAt(query.length - 1) + 1))
-        .get()
-        .then((value) => debugPrint(value.toString()));
+  static Future<void> uploadContent() async {}
+
+  static Future<void> delete(contentId) async {
+    await FirebaseFirestore.instance
+        .collection('contetsData')
+        .doc(contentId)
+        .delete();
   }
 }
