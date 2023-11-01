@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:insource/const/open_ai.dart';
-import 'package:insource/model/open_ai.dart';
+import 'package:insource/model/open_ai_model.dart';
 
 class RecomendationServices {
   static Future<GptData> getRecomendation() async {

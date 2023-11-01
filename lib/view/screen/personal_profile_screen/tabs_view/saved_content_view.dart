@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:insource/view/widgets/content_card.dart';
-import 'package:insource/viewmodel/personal_list_view_provider.dart';
+import 'package:insource/viewmodel/saved_list_view_provider.dart';
 import 'package:provider/provider.dart';
 
-class UserContentList extends StatefulWidget {
-  const UserContentList({super.key});
+class SavedContentList extends StatefulWidget {
+  const SavedContentList({super.key});
 
   @override
-  State<UserContentList> createState() => _UserContentListState();
+  State<SavedContentList> createState() => _SavedContentListState();
 }
 
-class _UserContentListState extends State<UserContentList> {
-  late final PersonalListViewProvider listProvider;
+class _SavedContentListState extends State<SavedContentList> {
+  late final SavedListViewProvider listProvider;
 
   @override
   void initState() {
     super.initState();
 
-    listProvider =
-        Provider.of<PersonalListViewProvider>(context, listen: false);
+    listProvider = Provider.of<SavedListViewProvider>(context, listen: false);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PersonalListViewProvider>(builder: (context, value, child) {
+    return Consumer<SavedListViewProvider>(builder: (context, value, child) {
       if (value.isLoading) {
         return const Center(
           child: CircularProgressIndicator(),

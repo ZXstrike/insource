@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:insource/view/screen/personal_profile_screen/tabs_view/liked_content_view.dart';
+import 'package:insource/view/screen/personal_profile_screen/tabs_view/saved_content_view.dart';
 import 'package:insource/view/screen/personal_profile_screen/tabs_view/personal_content_list_view.dart';
 import 'package:insource/viewmodel/account_view_provider.dart';
 import 'package:insource/viewmodel/personal_list_view_provider.dart';
@@ -55,39 +55,70 @@ class _AccountViewState extends State<AccountView>
           ),
           ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(200)),
-            child: Consumer<AccountViewProvider>(
-              builder: (context, value, child) => Image(
-                width: 125,
-                height: 125,
-                fit: BoxFit.cover,
-                image: NetworkImage(value.userData.imageUrl, scale: 0.1),
-              ),
-            ),
+            child:
+                Consumer<AccountViewProvider>(builder: (context, value, child) {
+              if (value.isLoading) {
+                return const SizedBox(
+                  height: 125,
+                  width: 125,
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else {
+                return Image(
+                  width: 125,
+                  height: 125,
+                  fit: BoxFit.cover,
+                  image: NetworkImage(value.userData.imageUrl, scale: 0.1),
+                );
+              }
+            }),
           ),
           const SizedBox(
             height: 20,
           ),
-          Consumer<AccountViewProvider>(
-            builder: (context, value, child) => Text(
-              value.userData.username,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600),
-            ),
-          ),
+          Consumer<AccountViewProvider>(builder: (context, value, child) {
+            if (value.isLoading) {
+              return const SizedBox(
+                height: 125,
+                width: 125,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else {
+              return Text(
+                value.userData.username,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600),
+              );
+            }
+          }),
           const SizedBox(
             height: 10,
           ),
-          Consumer<AccountViewProvider>(
-            builder: (context, value, child) => Text(
-              value.userData.email,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ),
+          Consumer<AccountViewProvider>(builder: (context, value, child) {
+            if (value.isLoading) {
+              return const SizedBox(
+                height: 125,
+                width: 125,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else {
+              return Text(
+                value.userData.email,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+              );
+            }
+          }),
           const SizedBox(
             height: 20,
           ),
@@ -109,14 +140,14 @@ class _AccountViewState extends State<AccountView>
                 text: 'Created',
               ),
               Tab(
-                text: 'Liked',
+                text: 'Saved',
               ),
             ]),
           ),
           Expanded(
             child: TabBarView(
                 controller: accountProvider.tabController,
-                children: const [UserContentList(), LikedContentList()]),
+                children: const [UserContentList(), SavedContentList()]),
           )
         ],
       ),

@@ -3,6 +3,7 @@ class ContentData {
   final String imageUrl;
   final String title;
   final List liked;
+  final List saved;
   final String creatorId;
   final String creatorName;
   final String creatorPicture;
@@ -12,6 +13,7 @@ class ContentData {
     this.imageUrl,
     this.title,
     this.liked,
+    this.saved,
     this.creatorId,
     this.creatorName,
     this.creatorPicture,
@@ -25,6 +27,7 @@ class ContentData {
         map['imageUrl'],
         map['title'],
         map['liked'],
+        map['saved'],
         map['creatorId'],
         map['creatorName'],
         map['creatorPicture'],

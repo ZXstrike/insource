@@ -3,19 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:insource/model/content_model.dart';
 import 'package:insource/services/firebase_services.dart';
 
-class PersonalListViewProvider extends ChangeNotifier {
+class SavedListViewProvider extends ChangeNotifier {
   final User? currentUser = FirebaseAuth.instance.currentUser;
-
-  List<ContentData> contentList = [];
 
   bool isLoading = true;
 
-  PersonalListViewProvider() {
+  List<ContentData> contentList = [];
+
+  SavedListViewProvider() {
     getContentList();
   }
 
   void getContentList() async {
-    contentList = await FirebaseServices.getPersonalContentList(currentUser!);
+    contentList = await FirebaseServices.getSavedContentList(currentUser!);
     contentList.reversed;
     debugPrint(contentList.toString());
     isLoading = false;

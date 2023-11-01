@@ -10,7 +10,10 @@ class ContentCard extends StatelessWidget {
   final ImageProvider<Object>? creatorImage;
   final TextStyle? style;
   final void Function()? likeFunction;
-  final Widget icon;
+  final void Function()? saveFunction;
+
+  final Widget likeIcon;
+  final Widget saveIcon;
 
   const ContentCard({
     super.key,
@@ -23,7 +26,9 @@ class ContentCard extends StatelessWidget {
     this.creatorImage,
     this.style,
     this.likeFunction,
-    required this.icon,
+    this.saveFunction,
+    required this.likeIcon,
+    required this.saveIcon,
   });
 
   @override
@@ -113,7 +118,14 @@ class ContentCard extends StatelessWidget {
                     onTap: likeFunction,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 15),
-                      child: icon,
+                      child: likeIcon,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: saveFunction,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: saveIcon,
                     ),
                   ),
                 ],

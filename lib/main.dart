@@ -11,7 +11,7 @@ import 'package:insource/view/screen/splash_screen/splash_screen.dart';
 import 'package:insource/view/screen/upload_screen/upload_screen.dart';
 import 'package:insource/viewmodel/account_view_provider.dart';
 import 'package:insource/viewmodel/content_list_view_provider.dart';
-import 'package:insource/viewmodel/liked_list_view_provider.dart';
+import 'package:insource/viewmodel/saved_list_view_provider.dart';
 import 'package:insource/viewmodel/login_view_provider.dart';
 import 'package:insource/viewmodel/main_view_provider.dart';
 import 'package:insource/viewmodel/personal_list_view_provider.dart';
@@ -56,7 +56,7 @@ class Main extends StatelessWidget {
           create: (context) => AccountViewProvider(),
         ),
         ChangeNotifierProvider(
-          create: (context) => LikedListViewProvider(),
+          create: (context) => SavedListViewProvider(),
         ),
       ],
       builder: (context, child) => MaterialApp(

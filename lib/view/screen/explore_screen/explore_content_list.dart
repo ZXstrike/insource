@@ -26,6 +26,9 @@ class _ContentListState extends State<ContentList> {
       onRefresh: listProvider.onRefresh,
       child: SingleChildScrollView(
         child: Column(children: [
+          const SizedBox(
+            height: 15,
+          ),
           Consumer<ExploreListViewProvider>(
             builder: (context, value, child) => Padding(
               padding: const EdgeInsets.all(20),
@@ -47,16 +50,20 @@ class _ContentListState extends State<ContentList> {
                 child: Column(
                   children: [
                     const Text(
-                      'Today\'s art ideas',
+                      'Today\'s art idea',
                       style: TextStyle(
                         fontSize: 21,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
+                    const SizedBox(
+                      height: 15,
+                    ),
                     Text(
-                      value.todaysIdea,
+                      value.todaysIdea.replaceAll('\n\n', ''),
                       style: const TextStyle(
+                        fontSize: 18,
                         color: Colors.white,
                       ),
                     )
@@ -66,6 +73,7 @@ class _ContentListState extends State<ContentList> {
             ),
           ),
           const Divider(
+            height: 5,
             color: Colors.white,
             thickness: 1,
             indent: 20,
@@ -95,7 +103,7 @@ class _ContentListState extends State<ContentList> {
                   itemCount: value.contentList.length,
                   itemBuilder: (context, index) => Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 15),
+                        horizontal: 20, vertical: 10),
                     child: ContentCard(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 0),
@@ -110,7 +118,7 @@ class _ContentListState extends State<ContentList> {
                       title: value.contentList[index].title,
                       creator: value.contentList[index].creatorName,
                       style: const TextStyle(color: Colors.white, fontSize: 18),
-                      icon: value.contentList[index].liked
+                      likeIcon: value.contentList[index].liked
                                   .contains(value.currentUser?.uid) ==
                               true
                           ? const Icon(
@@ -124,6 +132,20 @@ class _ContentListState extends State<ContentList> {
                               color: Colors.white,
                             ),
                       likeFunction: () => listProvider.likeContent(index),
+                      saveIcon: value.contentList[index].saved
+                                  .contains(value.currentUser?.uid) ==
+                              true
+                          ? const Icon(
+                              Icons.bookmark,
+                              size: 35,
+                              color: Colors.white,
+                            )
+                          : const Icon(
+                              Icons.bookmark_border_outlined,
+                              size: 35,
+                              color: Colors.white,
+                            ),
+                      saveFunction: () => listProvider.saveContent(index),
                     ),
                   ),
                 );
