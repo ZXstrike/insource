@@ -1,11 +1,9 @@
-// lib/openai_apps/env/env.dart
-
-import 'package:envied/envied.dart';
+// import 'package:envied/envied.dart';
 
 part 'env.g.dart';
 
-@Envied(path: '.env')
+// @Envied(path: '.env')
 abstract class Env {
-  @EnviedField(varName: 'OPENAI_API_KEY')
-  static const String apiKey = _Env.apiKey;
+  // @EnviedField(varName: 'OPENAI_API_KEY')
+  static const String apiKey = "_Env.apiKey";
 }
